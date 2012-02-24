@@ -7,9 +7,9 @@ Gem::Specification.new do |s|
   s.version     = NamedLet::VERSION
   s.authors     = ["Tomohito Ozaki"]
   s.email       = ["ozaki@yuroyoro.com"]
-  s.homepage    = ""
+  s.homepage    = "https://github.com/yuroyoro/named_let"
   s.summary     = %q{named_let can be used to make the rspec's output easier to read.}
-  s.description = %q{`named_let(:name){ obj }` changes the value which returns 'obj#to_s' and 'obj#inspect' to :name, then output of 'rspec -format d' be improved more readable.}
+  s.description = %q{'named_let(:name){ obj }' changes the value which returns 'obj#to_s' and 'obj#inspect' to :name, then output of 'rspec -format d' be improved more readable.}
 
   s.rubyforge_project = "named_let"
 
@@ -20,5 +20,5 @@ Gem::Specification.new do |s|
 
   # dependencies
   s.add_development_dependency "rspec"
-  s.add_runtime_dependency "rspec-core"
+  s.add_runtime_dependency "rspec-core", ">= 0"
 end

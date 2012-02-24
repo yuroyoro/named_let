@@ -1,13 +1,16 @@
 named_let
 ==================================
 
-The `named_let can be used to make the rspec's output easier to read.
+The `named_let` can be used to make the rspec's output easier to read.
 It's wrapper function of `let`.
 
 `named_let(:name){ obj }` changes the value which returns 'obj#to_s' and
 'obj#inspect' to :name, then output message of 'rspec -format d' be improved more readable.
 
 # Usage
+
+add `require 'named_let'` to your spec_helper.rb or * _spec.rb.
+
 
     describe 'named_let' do
       context 'symbol only' do
