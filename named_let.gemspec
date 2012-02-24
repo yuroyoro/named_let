@@ -8,8 +8,8 @@ Gem::Specification.new do |s|
   s.authors     = ["Tomohito Ozaki"]
   s.email       = ["ozaki@yuroyoro.com"]
   s.homepage    = ""
-  s.summary     = %q{TODO: Write a gem summary}
-  s.description = %q{TODO: Write a gem description}
+  s.summary     = %q{named_let can be used to make the rspec's output easier to read.}
+  s.description = %q{`named_let(:name){ obj }` changes the value which returns 'obj#to_s' and 'obj#inspect' to :name, then output of 'rspec -format d' be improved more readable.}
 
   s.rubyforge_project = "named_let"
 
@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
 
-  # specify any dependencies here; for example:
-  # s.add_development_dependency "rspec"
-  # s.add_runtime_dependency "rest-client"
+  # dependencies
+  s.add_development_dependency "rspec"
+  s.add_runtime_dependency "rspec-core"
 end
