@@ -30,7 +30,7 @@ require "named_let/version"
 
 module NamedLet
   # In RSpec 2.8,  RSpec::Core::Let::ExampleGroupMethods
-  if RSpec::Core::Version::STRING < "2.8.0"
+  if (RSpec::Core::Version::STRING.split('.').map(&:to_i) <=> [2,8,0]) < 0
     klass = RSpec::Core::Let::ClassMethods
   else
     klass = RSpec::Core::Let::ExampleGroupMethods
