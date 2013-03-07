@@ -1,0 +1,168 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Named let by yuroyoro</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/respond.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+      <div id="header">
+        <nav>
+          <li class="fork"><a href="https://github.com/yuroyoro/named_let">View On GitHub</a></li>
+          <li class="downloads"><a href="https://github.com/yuroyoro/named_let/zipball/master">ZIP</a></li>
+          <li class="downloads"><a href="https://github.com/yuroyoro/named_let/tarball/master">TAR</a></li>
+          <li class="title">DOWNLOADS</li>
+        </nav>
+      </div><!-- end header -->
+
+    <div class="wrapper">
+
+      <section>
+        <div id="title">
+          <h1>Named let</h1>
+          <p>named_let can be used to make the rspec's output easier to read.It's wrapper function of `let`.</p>
+          <hr>
+          <span class="credits left">Project maintained by <a href="https://github.com/yuroyoro">yuroyoro</a></span>
+          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="http://twitter.com/#!/michigangraham">mattgraham</a></span>
+        </div>
+
+        <h1>named_let</h1>
+
+<p>The <code>named_let</code> can be used to make the rspec's output easier to read.
+It's wrapper function of <code>let</code>.</p>
+
+<p><code>named_let(:name){ obj }</code> changes the value which returns 'obj#to_s' and
+'obj#inspect' to :name, then output message of 'rspec -format d' be improved more readable.</p>
+
+<h1>Usage</h1>
+
+<p>add <code>require 'named_let'</code> to your spec_helper.rb or * _spec.rb.</p>
+
+<pre><code>describe 'named_let' do
+  context 'symbol only' do
+    named_let(:foo) { Object.new }
+    it { foo.to_s should == "foo" }
+    it { foo.inspect.should == "foo" }
+  end
+
+  context 'with label strings' do
+    named_let(:foo,"label for display"){ Object.new }
+    it { foo.to_s should == "label for display" }
+    it { foo.inspect.should == "label for display" }
+   end
+end
+</code></pre>
+
+<p>You can use <code>name_let!</code> to force the method's invocation before each example, like original <code>let!</code>.</p>
+
+<h1>Why named_let?</h1>
+
+<p>RSpec uses 'Object#inspect' for generating output message from value of specified by <code>let</code>.
+This will generates unexpected output like 'should == #<a>Object:0x2aaaaf8a0870A</a>', it's not human readable.</p>
+
+<p>Now let's use <code>named_let</code> instead of <code>let</code>.The generaed output will be more readable like 'should == "label for display'.</p>
+
+<h1>Example</h1>
+
+<p>For Example, now writing specs for CanCan like bellow,</p>
+
+<pre><code>require 'spec_helper'
+require "cancan/matchers"
+
+describe Ability do
+  context 'an user' do
+    let(:user)          { Factory.create(:user) }
+
+    let(:article)     { Factory.create(:article) }
+    let(:own_article) { Factory.create(:article, :user =&gt; user) }
+
+    subject { Ability.new(user) }
+
+    it { should be_able_to(:read, article) }
+    it { should be_able_to(:update, own_article) }
+  end
+end
+</code></pre>
+
+<p>This specs generates outputs is ...</p>
+
+<pre><code>$ bundle exec rspec -c --format d spec/models/ability_spec.rb
+
+Ability
+  an user
+    should be able to :read #&lt;Article id: 44, title: "The Test Article 1", body: "This is test article!!", created_at: "2012-02-23 14:19:26", updated_at: "2012-02-23 14:19:26", user_id: nil&gt;
+    should be able to :update #&lt;Article id: 45, title: "The Test Article 2", body: "This is test article!!", created_at: "2012-02-23 14:19:26", updated_at: "2012-02-23 14:19:26", user_id: 31&gt;
+
+Finished in 0.26158 seconds
+2 examples, 0 failures
+</code></pre>
+
+<p>OMG, It's not human readable. so,let's change <code>let</code> to <code>named_let</code>.</p>
+
+<pre><code>    named_let(:article)     { Factory.create(:article) }
+    named_let(:own_article) { Factory.create(:article, :user =&gt; user) }
+</code></pre>
+
+<p>again, execute <code>rspec --format d ...</code></p>
+
+<pre><code>$ bundle exec rspec -c --format d spec/models/ability_spec.rb
+
+Ability
+  an user
+    should be able to :read article
+    should be able to :update own article
+
+Finished in 0.25375 seconds
+2 examples, 0 failures
+</code></pre>
+
+<p>okay, it's readable!!!</p>
+
+<h1>For debugging</h1>
+
+<p>If the specs is fail, You will want to know original outputs of 'Object#inspect'.
+But named_let hides actual outputs of "Object#inspect".</p>
+
+<pre><code>Failures:
+
+  1) Ability an user
+     Failure/Error: it { should_not be_able_to(:update, own_article) }
+       expected not to be able to :update own article
+</code></pre>
+
+<p>For debugging spec, if given <code>-d</code> option to rspec command or <code>$DEBUG</code> flag is true,
+named_let append orignal result of <code>Object#inspect</code> to returns value.</p>
+
+<p>given <code>-d</code> option, then...</p>
+
+<pre><code>Failures:
+
+  1) Ability an user
+     Failure/Error: it { should_not be_able_to(:update, own_article) }
+       expected not to be able to :update own article (#&lt;Article id: 113, title: "The Test Article 3", body: "This is test article!!", created_at: "2012-02-24 05:53:17", updated_at: "2012-02-24 05:53:17", user_id: 90&gt;)
+</code></pre>
+
+<p>NOTE:</p>
+
+<p>Requires <code>ruby-debug</code> to using <code>-d</code> option.
+  run <code>gem install ruby-debug</code>.
+  If your Ruby-Runtime is 1.9+, see "<a href="https://github.com/mark-moseley/ruby-debug">https://github.com/mark-moseley/ruby-debug</a>".</p>
+      </section>
+
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+    
+  </body>
+</html>
