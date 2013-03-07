@@ -40,7 +40,7 @@ module NamedLet
     def named_let(name, label = nil, &block)
       define_method(name) do
         __memoized.fetch(name) {|k| __memoized[k] = instance_eval(&block).tap{|o|
-          return o if o.nil?
+          next o if o.nil?
 
           the_name = label || name
 
