@@ -32,8 +32,10 @@ module NamedLet
   # In RSpec 2.8,  RSpec::Core::Let::ExampleGroupMethods
   if (RSpec::Core::Version::STRING.split('.').map(&:to_i) <=> [2,8,0]) < 0
     klass = RSpec::Core::Let::ClassMethods
-  else
+  elsif (RSpec::Core::Version::STRING.split('.').map(&:to_i) <=> [2,13,0]) < 0
     klass = RSpec::Core::Let::ExampleGroupMethods
+  else
+    klass = RSpec::Core::MemoizedHelpers::ClassMethods
   end
 
   klass.class_eval do
