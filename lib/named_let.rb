@@ -38,33 +38,68 @@ module NamedLet
     klass = RSpec::Core::MemoizedHelpers::ClassMethods
   end
 
+  def extend_for_reporting(obj, the_name)
+    return obj if obj.nil?
+
+    # if given -d/--debug option, append calling original ones.(ruby-debug required)
+    call_super = begin ;$DEBUG or Debugger.started? rescue LoadError; nil; end
+
+    inject_code = lambda{|o, code| begin; o.instance_eval code; rescue TypeError; end  }
+    escape      = lambda{|str| str.gsub(/\"/, '\\"')}
+
+    genereate_wrapper_code = lambda{|o, method|
+      original_result = escape.call(o.send(method)) if call_super
+      "def #{method}; \"#{the_name}\" #{call_super ? " + \" (#{original_result})\"" : ''} ;end"
+    }
+
+    to_s_code    = genereate_wrapper_code.call(obj, :to_s)
+    inspect_code = genereate_wrapper_code.call(obj, :inspect)
+
+    inject_code.call(obj, to_s_code)
+    inject_code.call(obj, inspect_code)
+    obj
+  end
+  module_function :extend_for_reporting
+
   klass.class_eval do
-    def named_let(name, label = nil, &block)
-      define_method(name) do
-        __memoized.fetch(name) {|k| __memoized[k] = instance_eval(&block).tap{|o|
-          next o if o.nil?
+    if RSpec::Core::Version::STRING < "3.0"
 
-          the_name = label || name
+      # for Rspec2
+      def named_let(name, label = nil, &block)
 
-          # if given -d/--debug option, append calling original ones.(ruby-debug required)
-          call_super = begin ;$DEBUG or Debugger.started? rescue LoadError; nil; end
+        the_name = label || name
 
-          inject_code = lambda{|obj, code| begin; obj.instance_eval code; rescue TypeError; end  }
-          escape      = lambda{|str| str.gsub(/\"/, '\\"')}
-
-          genereate_wrapper_code = lambda{|obj, method|
-            original_result = escape.call(obj.send(method)) if call_super
-            code = "def #{method}; \"#{the_name}\" #{call_super ? " + \" (#{original_result})\"" : ''} ;end"
+        define_method(name) do
+          __memoized.fetch(name) {|k|
+            __memoized[k] = instance_eval(&block).tap{|o| NamedLet.extend_for_reporting(o, the_name) }
           }
-
-          to_s_code    = genereate_wrapper_code.call(o, :to_s)
-          inspect_code = genereate_wrapper_code.call(o, :inspect)
-
-          inject_code.call(o, to_s_code)
-          inject_code.call(o, inspect_code)
-          o
-        }}
+        end
       end
+    else
+      # for Rspec3
+      def named_let(name, label = nil, &block)
+        # We have to pass the block directly to `define_method` to
+        # allow it to use method constructs like `super` and `return`.
+        raise "#let or #subject called without a block" if block.nil?
+        RSpec::Core::MemoizedHelpers.module_for(self).__send__(:define_method, name, &block)
+
+        the_name = label || name
+
+        # Apply the memoization. The method has been defined in an ancestor
+        # module so we can use `super` here to get the value.
+        if block.arity == 1
+          define_method(name) {
+            __memoized.fetch_or_store(name) {
+              super(RSpec.current_example, &nil).tap{|o| NamedLet.extend_for_reporting(o, the_name) }
+            }
+          }
+        else
+          define_method(name) {
+            __memoized.fetch_or_store(name) { super(&nil).tap{|o| NamedLet.extend_for_reporting(o, the_name) }}
+          }
+        end
+      end
+
     end
 
     def named_let!(name, label = nil, &block)
